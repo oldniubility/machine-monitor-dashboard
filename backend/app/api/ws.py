@@ -14,6 +14,7 @@ class WSBroadcast:
 
     def __init__(self):
         self._connections: list[WebSocket] = []
+        self._new_alarms: list[dict] = []  # pending alarm notifications to push
         self._running = False
         self._task: asyncio.Task | None = None
 
@@ -35,6 +36,16 @@ class WSBroadcast:
                 dead.append(ws)
         for ws in dead:
             self._connections.remove(ws)
+
+    def push_alarm(self, alarm: dict):
+        """Queue a new alarm notification for broadcast."""
+        self._new_alarms.append(alarm)
+
+    async def broadcast_new_alarms(self):
+        """Send queued alarm notifications to all clients."""
+        while self._new_alarms:
+            alarm = self._new_alarms.pop(0)
+            await self.broadcast({"type": "alarm_new", "alarm": alarm})
 
     @property
     def connection_count(self) -> int:
@@ -59,6 +70,7 @@ async def broadcast_loop():
             statuses = _collector.get_all_statuses()
             if statuses:
                 await broadcast.broadcast({"type": "status_update", "devices": statuses})
+        await broadcast.broadcast_new_alarms()
         await asyncio.sleep(2)
 
 

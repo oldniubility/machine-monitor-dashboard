@@ -115,8 +115,20 @@ class CollectorService:
 
     async def _log_alarm(self, device_id: str, alarm_type: str, message: str):
         async with async_session() as session:
+            from sqlalchemy import select
+            dev = (await session.execute(select(Device).where(Device.id == device_id))).scalar()
             session.add(AlarmLog(device_id=device_id, alarm_type=alarm_type, message=message))
             await session.commit()
+            # Push to WebSocket
+            from app.api.ws import broadcast
+            broadcast.push_alarm({
+                "device_id": device_id,
+                "device_code": dev.device_code if dev else "?",
+                "device_name": dev.name if dev else "?",
+                "alarm_type": alarm_type,
+                "message": message,
+                "created_at": datetime.utcnow().isoformat(),
+            })
 
     def get_device_status(self, device_id: str) -> dict:
         return self._device_status.get(device_id, {"online_status": "offline", "run_status": "offline"})

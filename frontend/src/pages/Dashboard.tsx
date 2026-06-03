@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Monitor, PackageOpen, TrendingUp, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import KpiCard from "../components/KpiCard";
 import DeviceTable from "../components/DeviceTable";
@@ -8,6 +9,7 @@ import { fetchOverview, fetchSnapshots } from "../services/api";
 import type { DashboardOverview, DeviceSnapshot } from "../types";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [devices, setDevices] = useState<DeviceSnapshot[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -113,7 +115,7 @@ export default function Dashboard() {
       <div className="bg-surface-alt border border-border rounded-lg">
         <DeviceTable
           devices={mergedDevices}
-          onSelect={(id) => console.log("Selected:", id)}
+          onSelect={(id) => navigate(`/device/${id}`)}
         />
       </div>
     </div>

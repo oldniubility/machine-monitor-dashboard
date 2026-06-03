@@ -1,9 +1,11 @@
 import { useEffect, useRef, useCallback, useState } from "react";
-import type { WSStatusUpdate } from "../types";
 
 const WS_URL = `ws://${window.location.hostname}:${window.location.port}/ws/dashboard`;
 
-export function useWebSocket(onStatusUpdate: (data: Record<string, { online_status: string; run_status: string }>) => void) {
+export function useWebSocket(
+  onStatusUpdate?: (data: Record<string, { online_status: string; run_status: string }>) => void,
+  onAnyMessage?: (data: Record<string, unknown>) => void,
+) {
   const wsRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -19,11 +21,12 @@ export function useWebSocket(onStatusUpdate: (data: Record<string, { online_stat
 
     ws.onmessage = (event) => {
       try {
-        const data: WSStatusUpdate = JSON.parse(event.data);
-        if (data.type === "status_update") {
+        const data = JSON.parse(event.data);
+        if (data.type === "status_update" && onStatusUpdate) {
           onStatusUpdate(data.devices);
         }
-      } catch {}
+        if (onAnyMessage) onAnyMessage(data);
+      } catch { /* ignore */ }
     };
 
     ws.onclose = () => {
@@ -34,7 +37,7 @@ export function useWebSocket(onStatusUpdate: (data: Record<string, { online_stat
     ws.onerror = () => {
       ws.close();
     };
-  }, [onStatusUpdate]);
+  }, [onStatusUpdate, onAnyMessage]);
 
   useEffect(() => {
     connect();

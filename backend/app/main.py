@@ -9,11 +9,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db, async_session
 from app.models.device import Device
+from app.models.user import User
 from app.models.template import ProtocolTemplate, TemplateItem, RegisterType, DataType
 from app.services.modbus_simulator import create_default_simulator
 from app.services.collector import CollectorService
 from app.services.aggregator import AggregatorService
 from app.api import devices, dashboard, ws
+from app.api import reports
+from app.api import alarms
+from app.api import auth
 from app.api.devices import set_collector
 from app.api.dashboard import set_aggregator
 from app.api.ws import set_collector_ref, broadcast_loop
@@ -104,6 +108,14 @@ async def seed_data():
         await session.commit()
         logger.info(f"Seeded 3 templates and 3 devices.")
 
+        # Seed demo admin user
+        from app.models.user import User, hash_password
+        pw_hash, salt = hash_password("admin123")
+        admin = User(username="admin", password_hash=pw_hash, salt=salt, role="admin")
+        session.add(admin)
+        logger.info("Seeded admin user (admin / admin123).")
+        await session.commit()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -139,6 +151,9 @@ app.add_middleware(
 app.include_router(devices.router)
 app.include_router(dashboard.router)
 app.include_router(ws.router)
+app.include_router(reports.router)
+app.include_router(alarms.router)
+app.include_router(auth.router)
 
 
 @app.get("/api/health")
