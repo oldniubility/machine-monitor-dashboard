@@ -18,6 +18,7 @@ from app.api import devices, dashboard, ws
 from app.api import reports
 from app.api import alarms
 from app.api import auth
+from app.api import users
 from app.api.devices import set_collector
 from app.api.dashboard import set_aggregator
 from app.api.ws import set_collector_ref, broadcast_loop
@@ -154,6 +155,7 @@ app.include_router(ws.router)
 app.include_router(reports.router)
 app.include_router(alarms.router)
 app.include_router(auth.router)
+app.include_router(users.router)
 
 
 @app.get("/api/health")

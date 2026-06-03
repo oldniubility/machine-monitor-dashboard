@@ -2,6 +2,9 @@
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
+import csv
+import io
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import selectinload
@@ -179,7 +182,58 @@ async def get_workshop_summary(
             workshop=ws_name,
             device_count=len(ws_devices),
             online_count=online,
-            total_output=round(agg[0] or 0.0, 1),
-            avg_availability=round(agg[1] or 0.0, 1),
-        ))
+        total_output=round(agg[0] or 0.0, 1),
+        avg_availability=round(agg[1] or 0.0, 1),
+    ))
     return results
+
+
+# ── CSV Export ──
+
+@router.get("/production/csv")
+async def export_production_csv(
+    start: str | None = Query(None),
+    end: str | None = Query(None),
+    workshop: str | None = Query(None),
+    device_id: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Export production report as CSV."""
+    today = date.today()
+    start_date = date.fromisoformat(start) if start else today - timedelta(days=30)
+    end_date = date.fromisoformat(end) if end else today
+
+    dev_q = select(Device)
+    if device_id:
+        dev_q = dev_q.where(Device.id == device_id)
+    if workshop:
+        dev_q = dev_q.where(Device.workshop == workshop)
+    devices = (await db.execute(dev_q)).scalars().all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["设备编号", "设备名称", "车间", "日期", "产量(件)", "稼动率(%)"])
+
+    for dev in devices:
+        rows = (await db.execute(
+            select(AggregatedMetric)
+            .where(
+                AggregatedMetric.device_id == dev.id,
+                AggregatedMetric.period_type == "day",
+                AggregatedMetric.period_key >= start_date.isoformat(),
+                AggregatedMetric.period_key <= end_date.isoformat(),
+            )
+            .order_by(AggregatedMetric.period_key.asc())
+        )).scalars().all()
+        for r in rows:
+            writer.writerow([
+                dev.device_code, dev.name, dev.workshop,
+                r.period_key, r.output_count, r.availability,
+            ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=production_{start_date}_{end_date}.csv"},
+    )

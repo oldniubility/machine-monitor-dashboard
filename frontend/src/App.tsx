@@ -8,6 +8,7 @@ import DeviceDetail from "./pages/DeviceDetail";
 import Reports from "./pages/Reports";
 import AlarmsPage from "./pages/AlarmsPage";
 import LoginPage from "./pages/LoginPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const NAV_ITEMS = [
   { to: "/", icon: Monitor, label: "车间总览" },
@@ -27,7 +28,6 @@ function AppLayout() {
   const navigate = useNavigate();
   const [alarmBadge, setAlarmBadge] = useState(0);
 
-  // Poll unresolved count
   useEffect(() => {
     if (!isAuthenticated) return;
     const poll = async () => {
@@ -42,7 +42,6 @@ function AppLayout() {
     return () => clearInterval(t);
   }, [isAuthenticated]);
 
-  // Also listen for WS alarm_new to bump badge
   useWebSocket(undefined, (data: Record<string, unknown>) => {
     if (data.type === "alarm_new") {
       fetch("/api/alarms/unresolved-count")
@@ -53,7 +52,6 @@ function AppLayout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top Nav */}
       <header className="h-14 bg-surface-alt border-b border-border flex items-center px-6 shrink-0">
         <div className="flex items-center gap-2 mr-8">
           <Monitor size={20} className="text-accent" />
@@ -110,14 +108,13 @@ function AppLayout() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/device/:id" element={<ProtectedRoute><DeviceDetail /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
           <Route path="/alarms" element={<ProtectedRoute><AlarmsPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Placeholder title="系统配置" /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </main>
@@ -132,13 +129,5 @@ export default function App() {
         <AppLayout />
       </BrowserRouter>
     </AuthProvider>
-  );
-}
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div className="p-6 flex items-center justify-center h-64 text-muted text-sm">
-      {title} — 即将上线
-    </div>
   );
 }

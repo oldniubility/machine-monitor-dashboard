@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   BarChart3, TrendingUp, PackageOpen, Monitor, Factory,
+  Download,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -76,6 +77,16 @@ export default function Reports() {
           onChange={(e) => setEnd(e.target.value)}
           className="bg-surface-alt border border-border rounded px-2 py-1 text-xs focus:outline-none focus:border-accent/30"
         />
+      </div>
+
+      {/* Export */}
+      <div className="flex items-center gap-3 mb-6">
+        <a
+          href={`/api/reports/production/csv?start=${start}&end=${end}`}
+          className="flex items-center gap-1 px-3 py-1 rounded text-xs bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
+        >
+          <Download size={12} /> 导出 CSV
+        </a>
       </div>
 
       {/* Workshop Summary Cards */}
