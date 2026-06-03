@@ -9,7 +9,7 @@ from app.database import Base
 class TimeSeriesData(Base):
     __tablename__ = "timeseries_data"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_id: Mapped[str] = mapped_column(String(36), index=True, comment="设备ID")
     item_id: Mapped[str] = mapped_column(String(36), index=True, comment="指标项ID")
     raw_value: Mapped[float] = mapped_column(Float, comment="原始值")

@@ -1,7 +1,7 @@
 """Protocol template and template item models."""
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Integer, Float, DateTime, Enum as SAEnum, ForeignKey, func
+from sqlalchemy import Boolean, String, Integer, Float, DateTime, Enum as SAEnum, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 import enum
@@ -31,7 +31,7 @@ class ByteOrder(str, enum.Enum):
 class ProtocolTemplate(Base):
     __tablename__ = "protocol_templates"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(64), comment="模板名称")
     brand: Mapped[str] = mapped_column(String(32), comment="品牌")
     model: Mapped[str] = mapped_column(String(32), comment="型号")
@@ -46,7 +46,7 @@ class ProtocolTemplate(Base):
 class TemplateItem(Base):
     __tablename__ = "template_items"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     template_id: Mapped[str] = mapped_column(String(36), ForeignKey("protocol_templates.id"), nullable=False)
     item_name: Mapped[str] = mapped_column(String(64), comment="指标名称")
     register_type: Mapped[RegisterType] = mapped_column(SAEnum(RegisterType), comment="寄存器类型")

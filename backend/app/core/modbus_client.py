@@ -38,7 +38,7 @@ class ModbusReader:
             if not await self.connect():
                 return None
         try:
-            rr = await self._client.read_holding_registers(address, count, slave=self.slave_id)
+            rr = await self._client.read_holding_registers(address, count=count, slave=self.slave_id)
             if rr.isError():
                 return None
             return rr.registers

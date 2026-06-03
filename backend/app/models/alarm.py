@@ -9,7 +9,7 @@ from app.database import Base
 class AlarmLog(Base):
     __tablename__ = "alarm_logs"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_id: Mapped[str] = mapped_column(String(36), index=True)
     alarm_type: Mapped[str] = mapped_column(String(32), comment="fault/offline/communication_error")
     alarm_code: Mapped[str | None] = mapped_column(String(32), nullable=True)

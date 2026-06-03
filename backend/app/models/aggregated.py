@@ -9,7 +9,7 @@ from app.database import Base
 class AggregatedMetric(Base):
     __tablename__ = "aggregated_metrics"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     device_id: Mapped[str] = mapped_column(String(36), index=True)
     period_type: Mapped[str] = mapped_column(String(16), comment="day/week/month/year/shift")
     period_key: Mapped[str] = mapped_column(String(32), comment="周期标识如2026-06-03")
