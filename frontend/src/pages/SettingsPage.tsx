@@ -106,7 +106,7 @@ function DeviceTab({ token }: { token: string | null }) {
 function TemplateTab({ token }: { token: string | null }) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [editing, setEditing] = useState<Template | null>(null);
+  const [editing, setEditing] = useState<Template | null>(null); const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", brand: "", model: "", version: 1, description: "" });
   const [items, setItems] = useState<TemplateItem[]>([]);
   const [msg, setMsg] = useState("");
@@ -115,7 +115,7 @@ function TemplateTab({ token }: { token: string | null }) {
     if (res.ok) setTemplates(await res.json());
   };
   useEffect(() => { load(); }, []);
-  const reset = () => { setForm({ name: "", brand: "", model: "", version: 1, description: "" }); setItems([]); setEditing(null); setMsg(""); };
+  const reset = () => { setForm({ name: "", brand: "", model: "", version: 1, description: "" }); setItems([]); setEditing(null); setShowForm(false); setMsg(""); };
   const addItem = () => setItems(prev => [...prev, DEFAULT_ITEM()]);
   const removeItem = (idx: number) => setItems(prev => prev.filter((_, i) => i !== idx));
   const updateItem = (idx: number, patch: Partial<TemplateItem>) => setItems(prev => prev.map((it, i) => i === idx ? { ...it, ...patch } : it));
@@ -136,8 +136,8 @@ function TemplateTab({ token }: { token: string | null }) {
   const toggle = (id: string) => setExpanded(expanded === id ? null : id);
   return (
     <div>
-      <div className="flex items-center justify-between mb-3"><span className="text-xs text-muted">{templates.length} 个模板</span><button onClick={() => { reset(); }} className="flex items-center gap-1 px-3 py-1 rounded text-xs bg-accent text-white"><Plus size={12} />新建模板</button></div>
-      {(editing !== null || items.length > 0 || form.name) && (
+      <div className="flex items-center justify-between mb-3"><span className="text-xs text-muted">{templates.length} 个模板</span><button onClick={() => { reset(); setShowForm(true); }} className="flex items-center gap-1 px-3 py-1 rounded text-xs bg-accent text-white"><Plus size={12} />新建模板</button></div>
+      {showForm && (
         <div className="bg-surface-alt border border-border rounded-lg p-4 mb-4"><h3 className="text-sm font-medium mb-3">{editing && editing.id ? "编辑模板" : "新建模板"}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
             <div><label className="block text-[10px] text-muted mb-0.5">模板名称</label><input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="w-full bg-surface border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-accent/30" /></div>
